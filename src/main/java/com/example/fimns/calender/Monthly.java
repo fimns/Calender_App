@@ -17,9 +17,8 @@ import java.util.Date;
 
 public class Monthly extends Fragment {
     Button Before, Next;
-    Calendars Cal_Month = new Calendars();
-    Task task = new Task();
-    public void Re_Calender(ViewGroup rootView, Calendars Cal_Month) {
+    private static Calendars Cal_Month = new Calendars();
+    public void Re_Calender(ViewGroup rootView) {
 
         final TextView []Month_Calender = new TextView[43];
         Month_Calender[1] = (TextView) rootView.findViewById(R.id.T1);
@@ -66,7 +65,7 @@ public class Monthly extends Fragment {
         Month_Calender[42] = (TextView) rootView.findViewById(R.id.T42);
         Cal_Month.setCalender(Cal_Month.Year, Cal_Month.Month,Cal_Month.getWeekday(Cal_Month.Year,Cal_Month.Month,1));
 
-        int css = 0;
+        int css = 0, today;
         for(int i=1; i<=42; i++) Month_Calender[i].setText(String.valueOf(Cal_Month.Calender[i]));
 
         for(int i=1; i<=42; i++) {
@@ -76,7 +75,8 @@ public class Monthly extends Fragment {
             }
             else {
                 css = css + 1;
-                if(Daily.task.isTask(Cal_Month.Year,Cal_Month.Month,css)) {
+                today = Cal_Month.getDay(Cal_Month.Year, Cal_Month.Month, css);
+                if(Cal_Month.isTask(today)) {
                     Month_Calender[i].setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.circle));
                 }
                 else {
@@ -99,21 +99,21 @@ public class Monthly extends Fragment {
         Button Before = (Button) rootView.findViewById(R.id.Button_Before);
         Button Next = (Button) rootView.findViewById(R.id.Button_Next);
 
-        Re_Calender(rootView,Cal_Month);
+        Re_Calender(rootView);
 
 
         Before.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Cal_Month.Before_Month();
-                Re_Calender(rootView,Cal_Month);
+                Re_Calender(rootView);
             }
         });
         Next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Cal_Month.Next_Month();
-                Re_Calender(rootView,Cal_Month);
+                Re_Calender(rootView);
             }
         });
 

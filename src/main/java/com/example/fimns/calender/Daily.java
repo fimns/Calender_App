@@ -5,9 +5,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -25,40 +27,56 @@ import java.util.Map;
 
 public class Daily extends Fragment {
     Button Creation, Next, Before;
-    public static Task task = new Task();
-    Calendars_Day Cal_Day = new Calendars_Day();
+    private Calendars Cal_Day = new Calendars();
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle saveInstanceState) {
         final ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.daily, container, false);
-
         final TextView Text_Day = (TextView) rootView.findViewById(R.id.Text_Day);
+
+
         Text_Day.setText(String.valueOf(Cal_Day.Year) + "." + String.valueOf(Cal_Day.Month) + "." + String.valueOf(Cal_Day.Day + "."));
         Creation = (Button) rootView.findViewById(R.id.Create);
         Next = (Button) rootView.findViewById(R.id.Button_Next);
         Before = (Button) rootView.findViewById(R.id.Button_Before);
 
 
+        rootView.setOnTouchListener(new View.OnTouchListener() {
+            float sx, sy, lx, ly;
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+
+                }
+
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+                }
+
+                if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                    sx = event.getX(); sy = event.getY();
+                }
+
+                return false;
+            }
+        });
+
         Creation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 TextView text = (TextView)rootView.findViewById(R.id.input);
-                int today = Cal_Day.getDay(Cal_Day.Year,Cal_Day.Month,Cal_Day.Day) - 737000;
+                int today = Cal_Day.getDay(Cal_Day.Year,Cal_Day.Month,Cal_Day.Day);
                 if(text.getText().length() >= 21) {
                     Toast.makeText(getActivity(),"일정은 20자 이하로 입력해 주세요.", Toast.LENGTH_SHORT).show();
-
                 }
                 else if (text.getText().length() == 0 ) {
                     Toast.makeText(getActivity(),"일정을 1자 이상 입력해 주세요.", Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    if (task.num[today] <= 4) {
-                        Main.db.execSQL("insert into task(i, num, ta) values ( "+ String.valueOf(today)+" , "+ String.valueOf(task.num[today])+" ,'"+
-                                String.valueOf(text.getText())+"') ;");
-                   //     Toast.makeText(getActivity(),String.valueOf(today),Toast.LENGTH_SHORT).show();
-                        task.tasks[today][task.num[today]] = String.valueOf(text.getText());
-                        task.num[today] = task.num[today] + 1;
+                    if (Cal_Day.getTodayTaskNums(today) <= 4) {
+                        //Toast.makeText(getActivity(),String.valueOf(today),Toast.LENGTH_SHORT).show();
+                        Cal_Day.addTask(today, String.valueOf(text.getText()));
                     }
                     else Toast.makeText(getActivity(), "일정은 5개까지만 가능합니다", Toast.LENGTH_SHORT).show();
                     text.setText("");
@@ -66,6 +84,7 @@ public class Daily extends Fragment {
                 Re_View(rootView);
             }
         });
+
         Next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,6 +93,7 @@ public class Daily extends Fragment {
                 Re_View(rootView);
             }
         });
+
         Before.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -83,31 +103,27 @@ public class Daily extends Fragment {
 
             }
         });
-        int i;
+
+
+
         ListView list = (ListView) rootView.findViewById(R.id.listview);
-        int today = Cal_Day.getDay(Cal_Day.Year,Cal_Day.Month,Cal_Day.Day) - 737000;
-        String []temp = new String[task.num[today]];
-        for(i=0; i<task.num[today]; i++) {
-            temp[i] = task.tasks[today][i];
-        }
-        ArrayAdapter adapt = new ArrayAdapter(getActivity(),android.R.layout.simple_list_item_1 ,temp);
+        int today = Cal_Day.getDay(Cal_Day.Year,Cal_Day.Month,Cal_Day.Day);
+        String []temp = new String[Cal_Day.getTodayTaskNums(today)];
+        for(int i=0; i<temp.length; i++) temp[i] = Cal_Day.getTodayTask(today)[i];
+        ArrayAdapter adapt = new ArrayAdapter(getActivity(),android.R.layout.simple_list_item_1 , temp);
         list.setAdapter(adapt);
+
+
         final int[] temp1 = {0};
-        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+       list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                int t_id = Cal_Day.getDay(Cal_Day.Year,Cal_Day.Month,Cal_Day.Day);
-                int today = t_id - 737000;
-                task.Del(Cal_Day.getDay(Cal_Day.Year,Cal_Day.Month,Cal_Day.Day),position);
+                int today = Cal_Day.getDay(Cal_Day.Year,Cal_Day.Month,Cal_Day.Day);
+                Cal_Day.delTask(Cal_Day.getDay(Cal_Day.Year,Cal_Day.Month,Cal_Day.Day),position);
                 Toast.makeText(getActivity(),"삭제 완료",Toast.LENGTH_SHORT).show();
-                temp1[0] = 1;
-      //          Toast.makeText(getActivity(),String.valueOf(t_id-737000),Toast.LENGTH_SHORT).show();
-                Main.db.execSQL("delete from task where i=" + String.valueOf(today) + ";");
-                for(int j=0; j<task.num[today]; j++) {
-                    Main.db.execSQL("insert into task(i, num, ta) values ( "+ String.valueOf(today)+" , "+ String.valueOf(j)+" ,'"+
-                            String.valueOf(task.tasks[today][j])+"') ;");
-                }
                 Re_View(rootView);
+                temp1[0] = 1;
                 return false;
             }
         });
@@ -122,14 +138,11 @@ public class Daily extends Fragment {
     }
 
     public void Re_View(ViewGroup rootView) {
-        int i;
         ListView list = (ListView) rootView.findViewById(R.id.listview);
-        int today = Cal_Day.getDay(Cal_Day.Year,Cal_Day.Month,Cal_Day.Day) - 737000;
-        String []temp = new String[task.num[today]];
-        for(i=0; i<task.num[today]; i++) {
-            temp[i] = task.tasks[today][i];
-        }
-        ArrayAdapter adapt = new ArrayAdapter(getActivity(),android.R.layout.simple_list_item_1 ,temp);
+        int today = Cal_Day.getDay(Cal_Day.Year,Cal_Day.Month,Cal_Day.Day);
+        String []temp = new String[Cal_Day.getTodayTaskNums(today)];
+        for(int i=0; i<temp.length; i++) temp[i] = Cal_Day.getTodayTask(today)[i];
+        ArrayAdapter adapt = new ArrayAdapter(getActivity(),android.R.layout.simple_list_item_1 , temp);
         list.setAdapter(adapt);
     }
 }

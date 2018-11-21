@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class Weekly extends Fragment {
-    Calendars_Week Cal_Weekly = new Calendars_Week();
+    private Calendars Cal_Weekly = new Calendars();
     final String []Weekend = {"일","월","화","수","목","금","토"};
 
     public void Re_Calender(ViewGroup rootView) {
@@ -64,23 +64,25 @@ public class Weekly extends Fragment {
         Week_Calender[35] = (TextView) rootView.findViewById(R.id.T35);
 
        int weeks = Cal_Weekly.Week;
-       int c= 0, i, j;
+       int c= 0, i, j, today;
+
        for(i = (weeks-1)*7+1; i<=(weeks-1)*7+7; i++) {
             W[(i-1)%7+1].setText(Weekend[(i-1)%7] + "\n(" + String.valueOf(Cal_Weekly.Calender[i]) + ")");
             if(Cal_Weekly.Calender_State[i] == 0 ) W[(i-1)%7+1].setTextColor(Color.parseColor("#FFCACACA"));
             else  {
+                today = Cal_Weekly.getDay(Cal_Weekly.Year, Cal_Weekly.Month, i);
                 for(j=0; j<5; j++) Week_Calender[((i-1)%7+1) + (j*7)].setText("");
-                for(j=0; j<Daily.task.getNum(Cal_Weekly.Year,Cal_Weekly.Month,Cal_Weekly.Calender[i]); j++) {
-                    Week_Calender[((i-1)%7+1) + (j*7)].setText(
-                            Daily.task.tasks[Daily.task.getDay(Cal_Weekly.Year,Cal_Weekly.Month,Cal_Weekly.Calender[i])][j]);
+                for(j=0; j<Cal_Weekly.getTodayTaskNums(today); j++) {
+                    Week_Calender[((i-1)%7+1) + (j*7)].append(Cal_Weekly.getTodayTask(today)[j]);
                 }
                 if((i-1)%7 == 0 ) W[(i-1)%7+1].setTextColor(Color.parseColor("#F44F3D"));
                 else if((i-1)%7 == 6 ) W[(i-1)%7+1].setTextColor(Color.parseColor("#2D49FF"));
                 else W[(i-1)%7+1].setTextColor(Color.parseColor("#000000"));
-           }
+            }
         }
         for(i = (weeks-1)*7+1; i<=(weeks-1)*7+7; i++) {
-            Daily.task.isTask(Cal_Weekly.Year, Cal_Weekly.Month, Cal_Weekly.Calender[i]);
+           today = Cal_Weekly.getDay(Cal_Weekly.Year, Cal_Weekly.Month, i);
+           Cal_Weekly.isTask(today);
         }
         TextView Text_Week = (TextView) rootView.findViewById(R.id.Text_Week);
         Text_Week.setText(String.valueOf(Cal_Weekly.Year) + "." + String.valueOf(Cal_Weekly.Month) +"." + String.valueOf(Cal_Weekly.Week) + "주");
@@ -95,7 +97,7 @@ public class Weekly extends Fragment {
         Button Next = (Button) rootView.findViewById(R.id.Button_Next);
         final TextView Text_Week = (TextView) rootView.findViewById(R.id.Text_Week);
         Button Before = (Button) rootView.findViewById(R.id.Button_Before);
-        Re_Calender(rootView);
+        //Re_Calender(rootView);
         Next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -110,8 +112,7 @@ public class Weekly extends Fragment {
                 Re_Calender(rootView);
             }
         });
-
+        Re_Calender(rootView);
         return rootView;
     }
-
 }

@@ -19,46 +19,22 @@ import java.util.Date;
 import java.util.Calendar;
 
 public class Main extends AppCompatActivity {
+
+    Calendars CalendarM;
     Weekly Week;
     Monthly Month;
     Daily Day;
     TabLayout tabs;
-    public static SQLiteDatabase db;
-   // public DatabaseHelper dbHelper;
-    int chk;
-  //  Button ToMon, ToWeek, ToDay;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ///////--Database--//////////
-        db = openOrCreateDatabase("DB",MODE_PRIVATE,null);
-     //   db.execSQL("drop table task");
-        try {
-            db.execSQL("create table task (i integer, num integer, ta text);");
-        } catch(Exception ex) {
-        }
-        Cursor c1 = db.rawQuery("select * from task;",null);
-        int count = c1.getCount(), j;
-        int _id, _num;
-        String _task;
-        for(int i =0; i<count; i++) {
-            c1.moveToNext();
-            _id = c1.getInt(0);
-            _num = c1.getInt(1);
-            Daily.task.num[_id] = max(Daily.task.num[_id],_num+1);
-            _task = c1.getString(2);
-            Daily.task.tasks[_id][_num] = _task;
-        }
-        c1.close();
-
-        /////////////
         setContentView(R.layout.main);
         getSupportActionBar().hide();
         Week = new Weekly();
         Month = new Monthly();
         Day = new Daily();
-        chk = 0;
-
+        CalendarM = new Calendars(getApplicationContext());
         Intent intent = new Intent(getApplicationContext(), full.class);
         startActivity(intent);
 
@@ -75,13 +51,8 @@ public class Main extends AppCompatActivity {
                                     @Override
                                     public void onTabReselected(TabLayout.Tab tab) {}});
 
-        //  ToMon = (Button) findViewById(R.id.ToMonth);
-      //  ToMon.setOnClickListener(Listener_Month);
-       // ToWeek = (Button) findViewById(R.id.ToWeek);
-      //  ToWeek.setOnClickListener(Listener_Week);
-       // ToDay = (Button) findViewById(R.id.ToDay);
-     //   ToDay.setOnClickListener(Listener_Day);
     }
+
     public void onFragmentChanged(int index) {
         if ( index == 1 ) {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment, Month).commit();
